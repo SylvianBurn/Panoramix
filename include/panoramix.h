@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <semaphore.h>
 #include <pthread.h>
 
@@ -39,5 +40,6 @@ typedef struct s_game {
 
 int my_getnbr(char const *);
 int game(data_t *);
+int free_and_destroy(data_t *, game_t **, info_t *);
 
 #endif /* !PANORAMIX_H_ */

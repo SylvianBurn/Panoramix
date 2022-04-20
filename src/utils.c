@@ -29,8 +29,34 @@ int my_getnbr(char const *str)
     return ((int)nbr);
 }
 
-void print_data(data_t *data)
+void my_freeer(info_t *info, data_t *data, game_t **infos)
 {
-    printf("nb_vil =: %d\npot_sz: %d\nnb_fights: %d\nnb_refills: %d\n",
-    data->nb_villagers, data->pot_size, data->nb_fights, data->nb_refills);
+    free(info);
+    for (int i = 0; i < (data->nb_villagers + 1); i++)
+        free(infos[i]);
+    free(infos);
+}
+
+int free_and_destroy(data_t *data, game_t **infos, info_t *info)
+{
+    int ret = 0;
+
+    if (pthread_mutex_destroy(info->drinking) != 0) {
+        write(2, "Failed to destroy mutex.\n", 25);
+        ret++;
+    }
+    if (sem_destroy(info->needs_refill) == -1) {
+        write(2, "Failed to destroy semaphore.\n", 29);
+        ret++;
+    }
+    if (sem_destroy(info->refill_done) == -1) {
+        write(2, "Failed to destroy semaphore.\n", 29);
+        ret++;
+    }
+    my_freeer(info, data, infos);
+    if (ret != 0)
+        ret = 84;
+    else
+        ret = 0;
+    return (ret);
 }

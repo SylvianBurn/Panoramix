@@ -7,8 +7,6 @@
 
 #include "../include/panoramix.h"
 
-// the first thread created will be the druid, the following will be villagers.
-
 void villagers(game_t *data)
 {
     printf("Villager %d: Going to battle !\n", data->id);
@@ -46,26 +44,23 @@ can only make %d more refills after this one.\n", data->info->nb_refills);
     printf("Druid: I'm out of viscum. I'm going back to... zZz\n");
 }
 
-int game(data_t *data)
+info_t *init_info(data_t *data, pthread_mutex_t *mtx, sem_t *a, sem_t *b)
 {
-    game_t **infos = malloc(sizeof(game_t *) * (data->nb_villagers + 1));
     info_t *info = malloc(sizeof(info_t));
-    pthread_t* threads = malloc((data->nb_villagers + 1) * sizeof(pthread_t));
-    pthread_mutex_t *mtx = malloc(sizeof(pthread_mutex_t));
-    sem_t *needs_refill = malloc(sizeof(sem_t));
-    sem_t *refill_done = malloc(sizeof(sem_t));
 
-    pthread_mutex_init(mtx, NULL);
-    sem_init(needs_refill, 0, 0);
-    sem_init(refill_done, 0, 0);
     info->nb_villagers = data->nb_villagers;
     info->pot_size = data->pot_size;
     info->pot = data->pot_size;
     info->nb_fights = data->nb_fights;
     info->nb_refills = data->nb_refills;
-    info->refill_done = refill_done;
-    info->needs_refill = needs_refill;
+    info->refill_done = a;
+    info->needs_refill = b;
     info->drinking = mtx;
+    return (info);
+}
+
+game_t **inits(game_t **infos, data_t *data, info_t *info, pthread_t *threads)
+{
     infos[0] = malloc(sizeof(data_t));
     infos[0]->info = info;
     infos[0]->id = 0;
@@ -77,9 +72,26 @@ int game(data_t *data)
         infos[i]->nb_fights = data->nb_fights;
         infos[i]->id = i;
     }
+    return (infos);
+}
+
+int game(data_t *data)
+{
+    game_t **infos = malloc(sizeof(game_t *) * (data->nb_villagers + 1));
+    info_t *info;
+    pthread_t* threads = malloc((data->nb_villagers + 1) * sizeof(pthread_t));
+    pthread_mutex_t *mtx = malloc(sizeof(pthread_mutex_t));
+    sem_t *needs_refill = malloc(sizeof(sem_t));
+    sem_t *refill_done = malloc(sizeof(sem_t));
+
+    pthread_mutex_init(mtx, NULL);
+    sem_init(needs_refill, 0, 0);
+    sem_init(refill_done, 0, 0);
+    info = init_info(data, mtx, refill_done, needs_refill);
+    infos = inits(infos, data, info, threads);
     for (int i = 1; i < (data->nb_villagers + 1); i++)
         pthread_create(&threads[i], NULL, (void *)villagers, (void *)infos[i]);
     for (int i = 0; i < (data->nb_villagers + 1); i++)
         pthread_join(threads[i], NULL);
-    return (0);
+    return (free_and_destroy(data, infos, info));
 }
