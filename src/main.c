@@ -7,7 +7,7 @@
 
 #include "../include/panoramix.h"
 
-int print_usage()
+int print_usage(void)
 {
     printf("USAGE:  ./panoramix <nb_villagers> <pot_size> <nb_fights>");
     printf(" <nb_refills>\n");
