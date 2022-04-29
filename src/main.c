@@ -11,7 +11,7 @@ int print_usage(void)
 {
     printf("USAGE:  ./panoramix <nb_villagers> <pot_size> <nb_fights>");
     printf(" <nb_refills>\n");
-    return (0);
+    return (84);
 }
 
 int check_args(char **av)

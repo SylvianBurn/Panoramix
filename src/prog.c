@@ -14,13 +14,14 @@ void villagers(game_t *data)
         pthread_mutex_lock(data->info->drinking);
         printf("Villager %d: I need a drink... \
 I see %d servings left.\n", data->id, data->info->pot);
-        if (data->info->pot > 0) {
-            data->info->pot--;
-        } else {
+        if (data->info->pot <= 0) {
             printf("Villager %d: Hey Pano wake up! \
 We need more potion.\n", data->id);
             sem_post(data->info->needs_refill);
             sem_wait(data->info->refill_done);
+        }
+        if (data->info->pot > 0) {
+            data->info->pot--;
         }
         pthread_mutex_unlock(data->info->drinking);
         data->nb_fights--;
